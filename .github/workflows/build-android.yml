@@ -27,9 +27,10 @@ jobs:
 
       - name: Get packages
         run: flutter pub get
-
-      - name: Create Android files
-        run: flutter create . --platforms=android --org com.aussiepartsfinder --project-name aussie_partsfinder
+- name: Create Android files
+  run: |
+    rm -rf android
+    flutter create . --platforms=android --org com.aussiepartsfinder --project-name aussie_partsfinderaussie_partsfinder
 
       - name: Get packages again
         run: flutter pub get
