@@ -1,7 +1,7 @@
-name: partfinder
-description: Universal new and used vehicle parts marketplace search app.
+name: aussie_partsfinder
+description: Aussie PartsFinder live parts search
 publish_to: "none"
-version: 0.1.0+1
+version: 2.0.0+2
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^6.3.0
   http: ^1.2.2
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
