@@ -1,82 +1,77 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import '../models/part_result.dart';
-import '../models/vehicle.dart';
 
 class PartsSearchService {
-  Future<List<PartResult>> searchParts({
-    required Vehicle vehicle,
-    required String part,
+  // We will connect this to the live marketplace backend later.
+  //
+  // Example:
+  // static const String baseUrl =
+  //     'https://your-api-address.com/api';
+  static const String baseUrl = '';
+
+  Future<List<PartResult>> search({
+    required String query,
+    required String vehicleType,
+    bool includeNew = true,
+    bool includeUsed = true,
   }) async {
-    final query = [
-      vehicle.year,
-      vehicle.make,
-      vehicle.model,
-      vehicle.variant,
-      part,
-    ].where((e) => e.toString().trim().isNotEmpty).join(' ');
+    // Until the live backend is connected, return an empty
+    // result list. The marketplace search buttons will still work.
+    if (baseUrl.trim().isEmpty) {
+      return [];
+    }
 
-    return _buildSearchResults(query);
-  }
+    final uri = Uri.parse(
+      '$baseUrl/search',
+    ).replace(
+      queryParameters: {
+        'q': query,
+        'vehicleType': vehicleType,
+        'new': includeNew.toString(),
+        'used': includeUsed.toString(),
+        'country': 'AU',
+      },
+    );
 
-  Future<List<PartResult>> searchMaintenance({
-    required Vehicle vehicle,
-    required String item,
-  }) async {
-    final query = [
-      vehicle.year,
-      vehicle.make,
-      vehicle.model,
-      vehicle.variant,
-      item,
-    ].where((e) => e.toString().trim().isNotEmpty).join(' ');
+    final response = await http.get(
+      uri,
+      headers: const {
+        'Accept': 'application/json',
+      },
+    ).timeout(
+      const Duration(seconds: 20),
+    );
 
-    return _buildSearchResults(query);
-  }
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'Search service returned ${response.statusCode}',
+      );
+    }
 
-  List<PartResult> _buildSearchResults(String query) {
-    final encoded = Uri.encodeComponent(query);
+    final decoded = jsonDecode(response.body);
 
-    return [
-      PartResult(
-        title: '$query - eBay Australia',
-        marketplace: 'eBay',
-        price: null,
-        imageUrl: null,
-        url: 'https://www.ebay.com.au/sch/i.html?_nkw=$encoded',
-        condition: 'New & Used',
-      ),
-      PartResult(
-        title: '$query - Amazon Australia',
-        marketplace: 'Amazon',
-        price: null,
-        imageUrl: null,
-        url: 'https://www.amazon.com.au/s?k=$encoded',
-        condition: 'New',
-      ),
-      PartResult(
-        title: '$query - Supercheap Auto',
-        marketplace: 'Supercheap Auto',
-        price: null,
-        imageUrl: null,
-        url:
-            'https://www.supercheapauto.com.au/search?q=$encoded',
-        condition: 'New',
-      ),
-      PartResult(
-        title: '$query - Repco',
-        marketplace: 'Repco',
-        price: null,
-        imageUrl: null,
-        url: 'https://www.repco.com.au/search?q=$encoded',
-        condition: 'New',
-      ),
-      PartResult(
-        title: '$query - Sparesbox',
-        marketplace: 'Sparesbox',
-        price: null,
-        imageUrl: null,
-        url: 'https://www.sparesbox.com.au/search?q=$encoded',
-        condition: 'New',
-      ),
-    ];
+    final List<dynamic> rows;
+
+    if (decoded is List) {
+      rows = decoded;
+    } else if (decoded is Map<String, dynamic> &&
+        decoded['results'] is List) {
+      rows = decoded['results'] as List;
+    } else {
+      rows = [];
+    }
+
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(PartResult.fromJson)
+        .where(
+          (result) =>
+              result.title.isNotEmpty &&
+              result.itemUrl.isNotEmpty,
+        )
+        .toList();
   }
 }
