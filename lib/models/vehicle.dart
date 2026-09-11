@@ -7,48 +7,65 @@ enum VehicleType {
 
 class Vehicle {
   final VehicleType type;
+  final String year;
   final String make;
   final String model;
-  final String year;
-  final String? vin;
-  final String? registration;
-  final String? state;
+  final String series;
+  final String engine;
+  final String vin;
+  final String registration;
 
   const Vehicle({
     required this.type,
-    required this.make,
-    required this.model,
-    required this.year,
-    this.vin,
-    this.registration,
-    this.state,
+    this.year = '',
+    this.make = '',
+    this.model = '',
+    this.series = '',
+    this.engine = '',
+    this.vin = '',
+    this.registration = '',
   });
 
   String get displayName {
-    return '$year $make $model'.trim();
+    return [
+      year,
+      make,
+      model,
+      series,
+      engine,
+    ].where((value) => value.trim().isNotEmpty).join(' ');
   }
 
-  String get searchQuery {
-    return '$year $make $model'.trim();
+  String buildQuery(String part) {
+    return [
+      year,
+      make,
+      model,
+      series,
+      engine,
+      part,
+    ].where((value) => value.trim().isNotEmpty).join(' ');
   }
 
   Vehicle copyWith({
     VehicleType? type,
+    String? year,
     String? make,
     String? model,
-    String? year,
+    String? series,
+    String? engine,
     String? vin,
     String? registration,
-    String? state,
   }) {
     return Vehicle(
       type: type ?? this.type,
+      year: year ?? this.year,
       make: make ?? this.make,
       model: model ?? this.model,
-      year: year ?? this.year,
+      series: series ?? this.series,
+      engine: engine ?? this.engine,
       vin: vin ?? this.vin,
       registration: registration ?? this.registration,
-      state: state ?? this.state,
     );
   }
 }
