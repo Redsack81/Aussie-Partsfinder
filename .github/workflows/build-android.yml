@@ -3,7 +3,8 @@ name: Build Android
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -23,32 +24,34 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
+
+      - name: Create clean Flutter Android project
+        run: |
+          flutter create build_app --platforms=android --org com.aussiepartsfinder --project-name aussie_partsfinder
+          cp pubspec.yaml build_app/pubspec.yaml
+          rm -rf build_app/lib
+          cp -r lib build_app/lib
 
       - name: Get packages
-        run: flutter pub get
-- name: Create Android files
-  run: |
-    rm -rf android
-    flutter create . --platforms=android --org com.aussiepartsfinder --project-name aussie_partsfinderaussie_partsfinder
-
-      - name: Get packages again
+        working-directory: build_app
         run: flutter pub get
 
       - name: Build APK
+        working-directory: build_app
         run: flutter build apk --release
 
       - name: Build App Bundle
+        working-directory: build_app
         run: flutter build appbundle --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Aussie-PartsFinder-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build_app/build/app/outputs/flutter-apk/app-release.apk
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: Aussie-PartsFinder-AAB
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: build_app/build/app/outputs/bundle/release/app-release.aab
